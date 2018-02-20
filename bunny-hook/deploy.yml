@@ -1,0 +1,14 @@
+# Location of the build scripts
+build:
+    - scripts/build.sh
+
+# Where to clone the repo for running the build
+files:
+  source: /
+  destination: /var/www/bunny-hook/html/
+
+branch: master
+
+# Location of deploy scripts
+deploy:
+    - scripts/deploy.sh
