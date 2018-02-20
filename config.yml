@@ -1,0 +1,4 @@
+# Server config
+tmp: /tmp/
+
+git_path: /var/lib/

@@ -1,0 +1,9 @@
+# Clone directive should go in this file, but it's missing!
+
+# Location of the build scripts
+build:
+    - scripts/build.sh
+
+# Location of deploy scripts
+deploy:
+    - scripts/deploy.sh
