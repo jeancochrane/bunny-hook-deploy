@@ -1,0 +1,10 @@
+home: '/var/www/bunny-hook/'
+
+prebuild:
+  - scripts/prebuild.sh
+
+build:
+  - scripts/build.sh
+
+deploy:
+  - scripts/deploy.sh

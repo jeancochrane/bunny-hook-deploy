@@ -1,3 +1,7 @@
 /keyrings/live/pubring.gpg~
 /keyrings/live/pubring.kbx~
 /keyrings/live/secring.gpg
+/scripts/build.sh
+/scripts/deploy.sh
+/configs/nginx.conf
+/configs/supervisor.conf
