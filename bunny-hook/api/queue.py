@@ -9,7 +9,7 @@ from api.worker import Worker
 
 class Queue(object):
     '''
-    Create and manage a queue of deployment jobs. This class connects the API
+    Create and manage a queue of deployment jobs. This class bridges the API
     and the Worker, so that deployment doesn't have to be attached to the
     request/response cycle.
     '''
@@ -39,34 +39,46 @@ class Queue(object):
 
     def add(self, payload):
         '''
-        Package up a work payload and drop it into the queue.
+        Package up a work payload and drop it into the queue. Returns the ID
+        of the queued work.
 
         Args:
             - payload (dict): An event from the GitHub API.
         '''
+        work_id = str(uuid4())
+
         insert = '''
             INSERT INTO queue
                      (id, payload, date_added)
               VALUES (?, ?, ?)
         '''
-        self.cursor.execute(insert, (str(uuid4()), json.dumps(payload), time.time()))
+        self.cursor.execute(insert, (work_id, json.dumps(payload), time.time()))
+
+        self.conn.commit()
+
+        return work_id
 
     def pop(self):
         '''
         Return the most recent payload and remove it from the queue.
         '''
+        # Start a transaction for the duration of the write
+        self.cursor.execute('BEGIN TRANSACTION')
+
         self.cursor.execute('SELECT * FROM queue ORDER BY date_added LIMIT 1')
         work = self.cursor.fetchone()
 
         if work:
             work_id = work[0]
             payload = json.loads(work[1])
-        else:
-            # No work in the queue
-            return None
 
-        # Delete the job from the queue
-        self.cursor.execute('DELETE FROM queue WHERE id = ?', (work_id,))
+            # Delete the job from the queue
+            self.cursor.execute('DELETE FROM queue WHERE id = ?', (work_id,))
+        else:
+            # No work was found in the queue
+            payload = None
+
+        self.conn.commit()
 
         return payload
 

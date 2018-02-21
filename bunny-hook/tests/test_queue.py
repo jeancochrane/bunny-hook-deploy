@@ -11,7 +11,8 @@ class TestQueue(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.queue = Queue('test.db')
+        cls.db_conn = 'test.db'
+        cls.queue = Queue(cls.db_conn)
 
         cls.payload = {
             'ref': 'refs/head/master',
@@ -38,9 +39,14 @@ class TestQueue(TestCase):
             queue_table = self.queue.cursor.execute(create_table)
 
     def test_queue_add(self):
-        self.queue.add(self.payload)
+        work_id = self.queue.add(self.payload)
 
-        queue = self.queue.cursor.execute('SELECT * FROM queue').fetchall()
+        queue = self.queue.cursor.execute('''
+            SELECT *
+            FROM queue
+            WHERE id = ?
+        ''', (work_id,)).fetchone()
+
         self.assertTrue(len(queue) > 0)
 
     def test_queue_pop(self):
@@ -51,6 +57,18 @@ class TestQueue(TestCase):
 
     def test_queue_pop_no_work(self):
         self.assertIsNone(self.queue.pop())
+
+    def test_queue_add_commits_to_database(self):
+        work_id = self.queue.add(self.payload)
+
+        # Open a separate queue connection
+        second_queue = Queue(self.db_conn)
+
+        # Check that work is queryable from the second queue
+        work = second_queue.pop()
+
+        self.assertIsNotNone(work)
+        self.assertEqual(work, self.payload)
 
     @patch('api.queue.Worker.deploy')
     def test_queue_run(self, mock_deploy):
