@@ -5,3 +5,4 @@
 /scripts/deploy.sh
 /configs/nginx.conf
 /configs/supervisor.conf
+/configs/secrets.py
